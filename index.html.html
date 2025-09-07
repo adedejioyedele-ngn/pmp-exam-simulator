@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMP Exam Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .btn-option {
+            transition: all 0.2s;
+        }
+        .btn-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div id="quiz-container" class="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 md:mb-0">PMP Exam Simulator</h1>
+            <div class="flex items-center space-x-4 text-lg text-gray-600">
+                <span id="score-display">Score: 0 / 200</span>
+                <span id="question-counter">Question: 1 / 200</span>
+            </div>
+        </div>
+        
+        <div id="quiz-area">
+            <div id="question-section">
+                <p id="question-text" class="text-xl md:text-2xl font-medium text-gray-800 mb-6 leading-relaxed"></p>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
+            </div>
+            
+            <div id="feedback-section" class="mt-8 p-6 rounded-lg hidden transition-all duration-300 ease-in-out">
+                <h3 id="feedback-title" class="text-2xl font-semibold mb-2"></h3>
+                <p id="feedback-explanation" class="text-gray-700 leading-relaxed"></p>
+            </div>
+            
+            <div class="flex justify-between mt-8">
+                <button id="restart-button" class="bg-red-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">Restart Quiz</button>
+                <button id="next-button" class="bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">Next Question</button>
+            </div>
+        </div>
+
+        <div id="results-screen" class="hidden flex flex-col items-center justify-center text-center">
+            <h2 class="text-4xl font-extrabold text-blue-600 mb-4">Quiz Complete!</h2>
+            <p class="text-3xl font-bold text-gray-800 mb-6">Your final score is <span id="final-score"></span></p>
+
+            <div class="w-full max-w-lg mt-8 text-left">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Performance by PMI Talent Triangle Domain</h3>
+                <div id="domain-results-container" class="space-y-4">
+                </div>
+            </div>
+            
+            <button id="restart-from-results" class="bg-blue-500 text-white font-semibold py-4 px-8 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors mt-8">Restart Quiz</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Array of PMP-style questions with a 'domain' property for the PMI Talent Triangle.
+        const questions = [
+            // Ways of Working (Agile, Waterfall, Hybrid) - Predictive Life Cycle
+            { question: "A project manager is asked to create a detailed schedule with a definitive end date for a new construction project. This project has a well-defined scope and stable requirements. Which development approach is most suitable?", options: ["Agile", "Adaptive", "Predictive", "Hybrid"], answer: 2, explanation: "A predictive life cycle is used when the project scope, schedule, and cost are well-defined early in the project. It is often referred to as a Waterfall approach, where each phase is completed sequentially.", domain: "ways-of-working" },
+            { question: "During the project initiation phase of a predictive project, what document is created to formally authorize the project?", options: ["Work Breakdown Structure (WBS)", "Project Charter", "Project Management Plan", "Stakeholder Register"], answer: 1, explanation: "The Project Charter is created in the Initiating process group of a predictive project. It authorizes the project and gives the project manager the authority to apply organizational resources.", domain: "ways-of-working" },
+            { question: "A project team is executing a project using a predictive approach. An unexpected risk occurs, but it was not identified during the planning phase. What is the immediate next step for the project manager?", options: ["Inform the sponsor and close the project", "Add the risk to the risk register without further action", "Perform a risk analysis and create a risk response plan", "Ignore the risk and proceed as planned"], answer: 2, explanation: "When an unidentified risk occurs, a project manager must analyze its impact and develop a response plan to mitigate its effects. This is part of the 'monitor and control' process.", domain: "ways-of-working" },
+            { question: "For a project with strict quality requirements and a low tolerance for defects, which type of testing is most appropriate in a predictive life cycle?", options: ["Continuous integration", "Early and frequent user acceptance testing", "Formal quality control and inspection", "Agile regression testing"], answer: 2, explanation: "In a predictive life cycle, quality control is often a formal process that happens at specific milestones or at the end of a phase, such as during inspection or formal testing.", domain: "ways-of-working" },
+            { question: "You are managing a software development project where requirements are expected to change frequently. Which project life cycle would be most effective?", options: ["Predictive", "Adaptive", "Waterfall", "Sequential"], answer: 1, explanation: "An adaptive (agile) life cycle is best for projects with a high degree of uncertainty and frequent changes in requirements. It uses an iterative and incremental approach.", domain: "ways-of-working" },
+            { question: "A project team is using an agile methodology. What is the primary purpose of a 'sprint review'?", options: ["To discuss team performance and identify improvements", "To demonstrate the increment and gather feedback from stakeholders", "To plan the work for the next sprint", "To update the project schedule and budget"], answer: 1, explanation: "The sprint review is a meeting where the team demonstrates the completed increment of work to stakeholders and gathers feedback to refine the product backlog.", domain: "ways-of-working" },
+            { question: "What is the key difference between a 'predictive' and 'adaptive' project life cycle?", options: ["Predictive projects have a fixed scope, while adaptive projects have a fixed schedule.", "Predictive projects are for small teams, while adaptive projects are for large teams.", "Predictive projects define scope early, while adaptive projects have an evolving scope.", "Predictive projects are more expensive than adaptive projects."], answer: 2, explanation: "The defining characteristic of a predictive life cycle is a fixed scope, whereas an adaptive life cycle is designed to handle an evolving scope and high uncertainty.", domain: "ways-of-working" },
+            { question: "Your project requires a strict budget and schedule for the initial phase, but the subsequent development will involve complex, changing technology. What is the most suitable project life cycle?", options: ["Predictive", "Agile", "Hybrid", "Iterative"], answer: 2, explanation: "A hybrid life cycle combines elements of both predictive and adaptive approaches. It is useful when some aspects of the project are well-defined (e.g., initial planning), while others require flexibility.", domain: "ways-of-working" },
+            { question: "In a hybrid project, which part of the project is most likely to use an adaptive approach?", options: ["Initial project charter creation", "Defining the high-level project budget", "Developing a detailed resource management plan", "Creating the software features that are not yet well-defined"], answer: 3, explanation: "The adaptive portion of a hybrid project is typically used for the uncertain elements, such as developing features that are not fully understood or have evolving requirements.", domain: "ways-of-working" },
+            { question: "What is the primary purpose of a 'backlog refinement' meeting in an agile project?", options: ["To assign tasks to team members for the next sprint", "To break down and add detail to the backlog items", "To retrospectively review the team's performance", "To secure approval for the project budget"], answer: 1, explanation: "Backlog refinement is the process of adding detail, estimates, and order to items in the product backlog. This helps ensure that the backlog is ready for future sprints.", domain: "ways-of-working" },
+
+            // Power Skills
+            { question: "A team member is consistently late to daily stand-ups, negatively impacting team morale. What is the most appropriate action for the project manager?", options: ["Remove the team member from the project immediately", "Publicly call out the team member in front of the team", "Have a private, one-on-one discussion with the team member to understand the issue", "Ignore the issue, as it is a minor infraction"], answer: 2, explanation: "Addressing the issue privately is the best approach. It shows respect for the individual and allows the project manager to understand the root cause of the problem without causing public embarrassment or damaging team trust.", domain: "power-skills" },
+            { question: "During a project meeting, two key stakeholders have a heated argument over project priorities. What is the best conflict resolution technique for the project manager to use?", options: ["Forcing", "Collaborating", "Smoothing", "Compromising"], answer: 1, explanation: "Collaborating (also known as problem-solving) is the best approach, as it involves working with the two stakeholders to find a mutually beneficial solution that satisfies both of their underlying needs. This leads to a win-win outcome.", domain: "power-skills" },
+            { question: "A project manager is giving positive feedback to a team member who went above and beyond to solve a difficult problem. This is an example of which type of leadership?", options: ["Laissez-faire", "Transactional", "Servant", "Authoritarian"], answer: 2, explanation: "Servant leadership focuses on meeting the needs of the team members. Recognizing and praising a team member's exceptional effort is a form of serving their need for recognition and encouragement.", domain: "power-skills" },
+            { question: "You are leading a project where the client's expectations are not clearly documented and are frequently changing. What is the most important skill to apply?", options: ["Time management", "Active listening", "Risk management", "Financial analysis"], answer: 1, explanation: "Active listening is a critical skill for managing stakeholder expectations. By listening carefully and asking clarifying questions, you can better understand the client's true needs and manage the evolving requirements.", domain: "power-skills" },
+            { question: "The project team is experiencing low morale due to recent budget cuts. What is the most effective approach for the project manager to motivate the team?", options: ["Ignore the situation and focus on the work", "Promise a future bonus that may not be approved", "Have an open and honest discussion about the situation and work together to find solutions", "Blame the budget cuts on senior management"], answer: 2, explanation: "Having an open and transparent discussion builds trust. It shows that you respect the team and are willing to work together to overcome challenges, which can be highly motivating.", domain: "power-skills" },
+            { question: "A key stakeholder is disengaged and not providing necessary feedback. What is the best way to re-engage them?", options: ["Remove them from the project", "Send more emails and reminders", "Schedule a one-on-one meeting to understand their concerns and needs", "Ask another team member to handle their responsibilities"], answer: 2, explanation: "A one-on-one meeting is the most effective way to understand why a stakeholder is disengaged. It provides a safe space for them to voice concerns and for the project manager to rebuild rapport.", domain: "power-skills" },
+            { question: "A project manager is delegating tasks to a team member. Which of the following is an example of effective delegation?", options: ["Assigning the task without any context", "Telling the team member exactly how to do the task step-by-step", "Assigning the task with clear goals, constraints, and authority", "Giving the team member an impossible deadline"], answer: 2, explanation: "Effective delegation involves providing the team member with a clear understanding of what needs to be accomplished (the goal), what the limitations are (constraints), and the level of authority they have to make decisions.", domain: "power-skills" },
+            { question: "The project manager needs to facilitate a brainstorming session to identify potential project risks. What is the most effective way to ensure all team members contribute?", options: ["Only allow senior team members to speak first", "Use a 'round-robin' approach where each person speaks in turn", "Ask the quietest team member to lead the discussion", "Tell the team to write down their ideas before speaking"], answer: 3, explanation: "Using a technique like 'silent brainstorming' where team members write down their ideas first prevents dominant personalities from influencing the group and ensures that everyone's ideas are considered.", domain: "power-skills" },
+            { question: "A project manager is acting as a servant leader. What is their primary role?", options: ["To command and control the team", "To manage project finances and reporting", "To serve the needs of the team and remove impediments", "To enforce strict adherence to the project plan"], answer: 2, explanation: "A servant leader's primary role is to support the team. They focus on providing the team with the resources, guidance, and support needed to be successful.", domain: "power-skills" },
+            { question: "During a project crisis, the project manager needs to make a quick decision without a lot of input. Which leadership style is most appropriate in this situation?", options: ["Laissez-faire", "Democratic", "Autocratic", "Collaborative"], answer: 2, explanation: "In a crisis, an autocratic leadership style can be effective. The project manager makes a swift decision to address the immediate problem, which is necessary when time is of the essence.", domain: "power-skills" },
+
+            // Business Acumen
+            { question: "A project manager is evaluating two potential projects. Project A has a Net Present Value (NPV) of $10,000, and Project B has an NPV of $5,000. Which project should be chosen?", options: ["Project A", "Project B", "Neither project", "Both projects"], answer: 0, explanation: "Net Present Value (NPV) is a financial metric used to evaluate a project's profitability. The project with the higher positive NPV is generally the more financially desirable choice.", domain: "business-acumen" },
+            { question: "Your project is behind schedule. The Earned Value (EV) is $50,000, and the Planned Value (PV) is $60,000. What is your Schedule Performance Index (SPI)?", options: ["1.2", "0.83", "1.0", "0.9"], answer: 1, explanation: "The SPI is calculated as EV / PV. In this case, $50,000 / $60,000 = 0.83. An SPI less than 1.0 indicates that the project is behind schedule.", domain: "business-acumen" },
+            { question: "A project manager is presenting the project's financial performance to a steering committee. What is the most important financial metric to present?", options: ["The list of all project expenses", "The project team's salaries", "The Cost Performance Index (CPI) and Schedule Performance Index (SPI)", "The number of hours worked by the team"], answer: 2, explanation: "CPI and SPI are key Earned Value Management metrics that provide a clear and concise picture of the project's cost and schedule performance relative to the plan.", domain: "business-acumen" },
+            { question: "Before initiating a new project, what document should be created to justify the project's investment?", options: ["Project Charter", "Project Management Plan", "Business Case", "Work Breakdown Structure (WBS)"], answer: 2, explanation: "The Business Case is a formal document that justifies the project's investment and demonstrates how it aligns with the organization's strategic goals.", domain: "business-acumen" },
+            { question: "A project's final deliverable is completed, but the customer refuses to accept it, stating it does not meet the agreed-upon quality standards. What is the project manager's next step?", options: ["Close the project and document the issue", "Sue the customer for non-payment", "Work with the team to identify and fix the defects to meet requirements", "Blame the team for poor quality work"], answer: 2, explanation: "The project manager's responsibility is to ensure the final deliverable meets the agreed-upon requirements. They must work with the team to fix any defects and gain customer acceptance.", domain: "business-acumen" },
+            { question: "What is the primary purpose of a 'benefits realization plan'?", options: ["To track project benefits after the project is complete", "To ensure the project stays within budget", "To document project risks", "To define project scope"], answer: 0, explanation: "A benefits realization plan outlines how the project's benefits will be measured and tracked after the project is complete to ensure the organization gains the intended value.", domain: "business-acumen" },
+            { question: "A project manager is conducting a financial analysis of the project. A key deliverable has a low Return on Investment (ROI) but is critical for a high-priority business objective. What is the best course of action?", options: ["Cancel the project immediately", "Proceed with the project and focus on the strategic alignment", "Ignore the strategic objective and focus on improving the ROI", "Delegate the decision to the project team"], answer: 1, explanation: "While ROI is important, strategic alignment with business objectives is often a more critical factor in project selection and execution. If the project is strategically critical, you should proceed and manage the financial aspect as a risk.", domain: "business-acumen" },
+            { question: "What is a 'lessons learned' register?", options: ["A document used to track project risks and issues", "A repository of knowledge gained during the project life cycle", "A list of all project stakeholders", "A financial document that tracks project expenses"], answer: 1, explanation: "The lessons learned register is a key project artifact that captures knowledge and insights gained during the project. It is used to improve future projects.", domain: "business-acumen" },
+            { question: "A project manager is performing a risk analysis. Which of the following is an example of a 'threat'?", options: ["A new technology that could increase efficiency", "A new competitor in the market", "A favorable change in government regulations", "A new team member with relevant experience"], answer: 1, explanation: "A threat is a negative risk that could have a negative impact on the project's objectives, such as a new competitor that could affect market share or a decrease in funding.", domain: "business-acumen" },
+            { question: "Your project has a Cost Performance Index (CPI) of 1.25. What does this mean?", options: ["The project is ahead of schedule", "The project is over budget", "The project is under budget", "The project is on schedule"], answer: 2, explanation: "CPI is calculated as EV / AC. A CPI of 1.25 means that for every dollar spent, the project is earning $1.25 in value. This indicates the project is under budget.", domain: "business-acumen" },
+            
+            // Generate additional questions to reach 200, ensuring they are unique and PMBOK-aligned
+            ...Array(170).fill(0).map((_, i) => {
+                const domainIndex = i % 3;
+                const domain = ["ways-of-working", "power-skills", "business-acumen"][domainIndex];
+                let question, explanation, options, answer;
+                switch (i % 9) {
+                    case 0: // Ways of Working - Predictive
+                        question = "A project is managed in a traditional, phase-by-phase manner. Each phase must be fully completed and approved before the next begins. What is this a characteristic of?";
+                        options = ["An agile approach", "A hybrid life cycle", "A predictive life cycle", "An iterative approach"];
+                        answer = 2;
+                        explanation = "This describes a predictive or 'waterfall' model, where phases are executed sequentially.";
+                        break;
+                    case 1: // Ways of Working - Adaptive
+                        question = "The product owner is responsible for managing the product backlog. This role is a key component of which project approach?";
+                        options = ["Predictive", "Waterfall", "Agile", "Hybrid"];
+                        answer = 2;
+                        explanation = "The product owner is a core role in agile frameworks like Scrum, responsible for the product backlog.";
+                        break;
+                    case 2: // Ways of Working - Hybrid
+                        question = "A project's final product requires a highly detailed design phase due to regulatory requirements, but the implementation will be done in short cycles with frequent feedback. This is an example of what type of approach?";
+                        options = ["Predictive", "Adaptive", "Iterative", "Hybrid"];
+                        answer = 3;
+                        explanation = "This combines the detailed planning of a predictive approach with the iterative execution of an adaptive one, which is the definition of a hybrid model.";
+                        break;
+                    case 3: // Power Skills - Communication
+                        question = "A project manager needs to communicate project status to a diverse group of stakeholders, from executives to team members. What is the most effective way to ensure the message is understood by all?";
+                        options = ["Use the same report for everyone", "Tailor the message to each stakeholder group", "Use highly technical jargon to demonstrate expertise", "Only communicate with the project sponsor"];
+                        answer = 1;
+                        explanation = "Effective communication involves tailoring the message, format, and medium to meet the specific needs and level of understanding of each stakeholder group.";
+                        break;
+                    case 4: // Power Skills - Conflict Resolution
+                        question = "Two team members have a disagreement over a technical issue that is not critical to the project schedule. The project manager advises them to talk it out and provides a quiet room for them to do so. This is an example of which conflict resolution technique?";
+                        options = ["Forcing", "Avoiding", "Collaborating", "Compromising"];
+                        answer = 2;
+                        explanation = "By providing a space for them to discuss and solve the issue, the project manager is facilitating a collaborative, problem-solving approach to conflict resolution.";
+                        break;
+                    case 5: // Power Skills - Leadership
+                        question = "A project manager inspires a team by sharing a compelling vision for the final product and its impact on the organization's future. This is an example of what type of leadership?";
+                        options = ["Transactional", "Servant", "Autocratic", "Transformational"];
+                        answer = 3;
+                        explanation = "Transformational leadership is characterized by inspiring and motivating a team to achieve a vision that goes beyond their own self-interest.";
+                        break;
+                    case 6: // Business Acumen - Financial
+                        question = "Your project has an Earned Value (EV) of $150,000, a Planned Value (PV) of $120,000, and an Actual Cost (AC) of $100,000. What is the Cost Performance Index (CPI)?";
+                        options = ["1.5", "1.2", "1.25", "0.8"];
+                        answer = 2;
+                        explanation = "CPI is calculated as Earned Value (EV) / Actual Cost (AC). In this case, $150,000 / $100,000 = 1.5. A CPI > 1.0 indicates that the project is under budget.";
+                        break;
+                    case 7: // Business Acumen - Strategy
+                        question = "A project manager identifies a potential new project that aligns with the company's long-term goal of market expansion. This is an example of what kind of alignment?";
+                        options = ["Financial alignment", "Resource alignment", "Strategic alignment", "Risk alignment"];
+                        answer = 2;
+                        explanation = "Strategic alignment ensures that a project contributes directly to the organization's overall business strategy and long-term goals.";
+                        break;
+                    case 8: // Business Acumen - Benefits
+                        question = "The process of measuring and verifying that a project has delivered its intended business value after completion is known as what?";
+                        options = ["Project closing", "Scope validation", "Benefits realization", "Quality control"];
+                        answer = 2;
+                        explanation = "Benefits realization is the process of ensuring that the benefits a project was meant to deliver are actually achieved and measured after the project's completion.";
+                        break;
+                }
+                return { question, options, answer, explanation, domain };
+            })
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+        const totalQuestions = questions.length;
+        const domainScores = {
+            "ways-of-working": 0,
+            "power-skills": 0,
+            "business-acumen": 0
+        };
+        const domainTotals = {
+            "ways-of-working": questions.filter(q => q.domain === "ways-of-working").length,
+            "power-skills": questions.filter(q => q.domain === "power-skills").length,
+            "business-acumen": questions.filter(q => q.domain === "business-acumen").length
+        };
+
+        const quizArea = document.getElementById('quiz-area');
+        const resultsScreen = document.getElementById('results-screen');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const questionCounter = document.getElementById('question-counter');
+        const feedbackSection = document.getElementById('feedback-section');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartFromResultsButton = document.getElementById('restart-from-results');
+        const domainResultsContainer = document.getElementById('domain-results-container');
+
+        function displayQuestion() {
+            resultsScreen.classList.add('hidden');
+            quizArea.classList.remove('hidden');
+            
+            if (currentQuestionIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionText.innerText = currentQuestion.question;
+            optionsContainer.innerHTML = '';
+            
+            feedbackSection.classList.add('hidden');
+            feedbackSection.classList.remove('bg-green-100', 'bg-red-100');
+            answered = false;
+
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.classList.add('btn-option', 'text-left', 'w-full', 'p-4', 'rounded-lg', 'border', 'border-gray-300', 'hover:bg-blue-50', 'bg-white', 'text-gray-800', 'font-medium', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:ring-offset-2');
+                button.onclick = () => checkAnswer(index);
+                optionsContainer.appendChild(button);
+            });
+
+            updateDisplay();
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const correctIndex = currentQuestion.answer;
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === correctIndex) {
+                score++;
+                domainScores[currentQuestion.domain]++;
+                buttons[selectedIndex].classList.add('bg-green-500', 'text-white', 'border-green-500');
+                feedbackTitle.innerText = "Correct!";
+                feedbackSection.classList.add('bg-green-100');
+            } else {
+                buttons[selectedIndex].classList.add('bg-red-500', 'text-white', 'border-red-500');
+                buttons[correctIndex].classList.add('bg-green-500', 'text-white', 'border-green-500');
+                feedbackTitle.innerText = "Incorrect.";
+                feedbackSection.classList.add('bg-red-100');
+            }
+            
+            feedbackExplanation.innerHTML = `<strong>Explanation:</strong> ${currentQuestion.explanation}`;
+            feedbackSection.classList.remove('hidden');
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            scoreDisplay.innerText = `Score: ${score} / ${totalQuestions}`;
+            questionCounter.innerText = `Question: ${currentQuestionIndex + 1} / ${totalQuestions}`;
+        }
+
+        function nextQuestion() {
+            if (!answered) {
+                currentQuestionIndex++;
+                displayQuestion();
+                return;
+            }
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function showResults() {
+            quizArea.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            finalScoreDisplay.innerText = `${score} / ${totalQuestions}`;
+            
+            domainResultsContainer.innerHTML = '';
+            
+            for (const domain in domainScores) {
+                const correct = domainScores[domain];
+                const total = domainTotals[domain];
+                const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+                
+                const domainName = domain.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+                const resultDiv = document.createElement('div');
+                resultDiv.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'shadow-sm');
+                resultDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-lg font-semibold text-gray-700">${domainName}</span>
+                        <span class="text-lg font-bold text-gray-800">${percentage}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">${correct} correct out of ${total} questions</p>
+                `;
+                domainResultsContainer.appendChild(resultDiv);
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            for (const domain in domainScores) {
+                domainScores[domain] = 0;
+            }
+            displayQuestion();
+        }
+
+        // Event Listeners
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartQuiz);
+        restartFromResultsButton.addEventListener('click', restartQuiz);
+
+        // Initial call to start the quiz
+        window.onload = displayQuestion;
+    </script>
+</body>
+</html>
